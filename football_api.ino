@@ -1,17 +1,10 @@
 
-#define BOARD_HAS_WIFI
-
-#ifndef ESP32
-#include <WiFi101.h>
-WiFi.setPins(8,7,4,2);
-#endif
-
 #include <Arduino_ConnectionHandler.h>
 #include "secrets.h"
 
-
 // set WIFI_SSID and WIFI_PASS in secrets.h
 WiFiConnectionHandler conMan(WIFI_SSID, WIFI_PASS);
+WiFiServer server(80);
 
 void setup(){
   Serial.begin(9600);
@@ -38,7 +31,9 @@ void loop() {
 /* ... */
 void onNetworkConnect() {
   Serial.println(">>>> CONNECTED to network");
-  Client& client = conMan.getClient();
+  server.begin();
+  Serial.println(">>>> starting server...");
+  WiFiClient client = server.available();
   bool currentLineIsBlank = true;
   while (client.connected()) {
 
