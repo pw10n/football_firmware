@@ -1,7 +1,7 @@
 
 #include "secrets.h"
 #include <SPI.h>
-//#include <WiFi101.h>
+#include <WiFi101.h>
 
 int status = WL_IDLE_STATUS;
 
@@ -10,9 +10,7 @@ WiFiServer server(80);
 void setup() {
   // initialize serial:
   Serial.begin(9600);
-  Serial.println("Attempting to connect to WPA network...");
-  Serial.print("SSID: ");
-  Serial.println(ssid);
+  Serial.println("Attempting to connect...");
 
   status = WiFi.begin(WIFI_SSID, WIFI_PASS);
   if ( status != WL_CONNECTED) {
