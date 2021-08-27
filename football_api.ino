@@ -1,13 +1,24 @@
 
 #include "secrets.h"
 #include <SPI.h>
+#ifdef ESP32
 #include <WiFi.h>
+#define LOCK_PIN LED_BUILTIN
+#else
+#include <WiFi101.h>
+#define LOCK_PIN 5
+#endif
+
+#define UNLOCK_DELAY 30000
 
 int status = WL_IDLE_STATUS;
 
 WiFiServer server(80);
 
 void setup() {
+  // set output pin
+  pinMode(LOCK_PIN, OUTPUT);
+  
   // initialize serial:
   Serial.begin(115200);
   Serial.println("Attempting to connect...");
@@ -21,7 +32,7 @@ void setup() {
   }
 
   Serial.println("OK");
-  Serial.print("Connected to wifi. My address:");
+  Serial.print("Connected to wifi. My address: ");
   IPAddress myAddress = WiFi.localIP();
   Serial.println(myAddress);
 
@@ -33,7 +44,6 @@ void loop() {
   
   WiFiClient client = server.available();
   bool currentLineIsBlank = true;
-  
   
   if (client.connected()){
     String* requestBuffer = new String();
@@ -64,6 +74,19 @@ void loop() {
             client.println("<html>");
             client.println("bar");
             client.println("</html>");
+          } else if (requestBuffer->startsWith("POST /unlock")) {
+            Serial.println(" >>> GOT UNLOCK COMMAND <<< ");
+            client.println("HTTP/1.1 200 OK");
+            client.println("Content-Type: text/html");
+            client.println("Connection: close");  // the connection will be closed after completion of the response
+            client.println();
+            client.println("<!DOCTYPE HTML>");
+            client.println("<html>");
+            client.println("ok");
+            client.println("</html>");
+            digitalWrite(LOCK_PIN, HIGH);
+            delay(UNLOCK_DELAY);
+            digitalWrite(LOCK_PIN, LOW);
           } else {
             client.println("HTTP/1.1 200 OK");
             client.println("Content-Type: text/html");
@@ -74,7 +97,6 @@ void loop() {
             client.println("hello");
             client.println("</html>");
           }
-
           break;
         }
 
