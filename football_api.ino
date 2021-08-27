@@ -1,7 +1,7 @@
 
 #include "secrets.h"
 #include <SPI.h>
-#include <WiFi101.h>
+#include <WiFi.h>
 
 int status = WL_IDLE_STATUS;
 
@@ -9,54 +9,71 @@ WiFiServer server(80);
 
 void setup() {
   // initialize serial:
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println("Attempting to connect...");
 
   status = WiFi.begin(WIFI_SSID, WIFI_PASS);
-  if ( status != WL_CONNECTED) {
-    Serial.println("Couldn't get a wifi connection");
-    while(true);
+  Serial.print("Connecting to wifi");
+  while ( status != WL_CONNECTED) {
+    Serial.print(".");
+    delay(1000);
+    status = WiFi.status();
   }
-  else {
-    server.begin();
-    Serial.print("Connected to wifi. My address:");
-    IPAddress myAddress = WiFi.localIP();
-    Serial.println(myAddress);
 
-  }
+  Serial.println("OK");
+  Serial.print("Connected to wifi. My address:");
+  IPAddress myAddress = WiFi.localIP();
+  Serial.println(myAddress);
+
+  server.begin();
+  Serial.println(">>>> starting server...");
 }
 
 void loop() {
-  server.begin();
-  Serial.println(">>>> starting server...");
-  while (true){
+  
   WiFiClient client = server.available();
   bool currentLineIsBlank = true;
-    while (client.connected()) {
-
-      Serial.println(">>>> client connected...");
+  
+  
+  if (client.connected()){
+    String* requestBuffer = new String();
+    Serial.println(">>>> client connected...");
+    do {
 
       if (client.available()) {
 
         char c = client.read();
 
-        Serial.write(c);
+        (*requestBuffer) += c;
 
         // if you've gotten to the end of the line (received a newline
         // character) and the line is blank, the http request has ended,
         // so you can send a reply
 
         if (c == '\n' && currentLineIsBlank) {
+
+          Serial.println(*requestBuffer);
           // send a standard http response header
 
-          client.println("HTTP/1.1 200 OK");
-          client.println("Content-Type: text/html");
-          client.println("Connection: close");  // the connection will be closed after completion of the response
-          client.println();
-          client.println("<!DOCTYPE HTML>");
-          client.println("<html>");
-          client.println("hello world");
-          client.println("</html>");
+          if (requestBuffer->startsWith("GET /foo")){
+            client.println("HTTP/1.1 200 OK");
+            client.println("Content-Type: text/html");
+            client.println("Connection: close");  // the connection will be closed after completion of the response
+            client.println();
+            client.println("<!DOCTYPE HTML>");
+            client.println("<html>");
+            client.println("bar");
+            client.println("</html>");
+          } else {
+            client.println("HTTP/1.1 200 OK");
+            client.println("Content-Type: text/html");
+            client.println("Connection: close");  // the connection will be closed after completion of the response
+            client.println();
+            client.println("<!DOCTYPE HTML>");
+            client.println("<html>");
+            client.println("hello");
+            client.println("</html>");
+          }
 
           break;
         }
@@ -71,6 +88,6 @@ void loop() {
 
       }
 
-    }
+    }while (client.connected());
   }
 }
