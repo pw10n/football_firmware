@@ -4,3 +4,7 @@
 3. configure target board in arduino ide
 4. verify build
 5. upload build to device
+
+Depends on WiFi or WiFi101
+
+

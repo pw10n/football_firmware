@@ -2,9 +2,11 @@
 #include "secrets.h"
 #include <SPI.h>
 #ifdef ESP32
+// support for ESP32
 #include <WiFi.h>
 #define LOCK_PIN LED_BUILTIN
 #else
+// support for Maker1000
 #include <WiFi101.h>
 #define LOCK_PIN 5
 #endif
@@ -74,6 +76,7 @@ void loop() {
             client.println("<html>");
             client.println("bar");
             client.println("</html>");
+            client.stop();
           } else if (requestBuffer->startsWith("POST /unlock")) {
             Serial.println(" >>> GOT UNLOCK COMMAND <<< ");
             client.println("HTTP/1.1 200 OK");
@@ -84,6 +87,7 @@ void loop() {
             client.println("<html>");
             client.println("ok");
             client.println("</html>");
+            client.stop();
             digitalWrite(LOCK_PIN, HIGH);
             delay(UNLOCK_DELAY);
             digitalWrite(LOCK_PIN, LOW);
@@ -96,6 +100,7 @@ void loop() {
             client.println("<html>");
             client.println("hello");
             client.println("</html>");
+            client.stop();
           }
           break;
         }
